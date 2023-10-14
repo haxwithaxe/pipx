@@ -58,6 +58,8 @@ def test_install_easy_packages(
 def test_install_easy_packages_globally(
     capsys, pipx_temp_env, caplog, package_name, package_spec
 ):
+    if sys.platform.startswith("win"):
+        pytest.skip("This behavior is undefined on Windows")
     install_package(capsys, pipx_temp_env, caplog, package_spec, package_name)
 
 
@@ -93,12 +95,6 @@ def test_install_package_specs(
     capsys, pipx_temp_env, caplog, package_name, package_spec
 ):
     install_package(capsys, pipx_temp_env, caplog, package_spec, package_name)
-
-
-def test_global_install(pipx_temp_env, capsys):
-    run_pipx_cli(["--global", "install", "pycowsay"])
-    captured = capsys.readouterr()
-    assert "installed package" in captured.out
 
 
 def test_force_install(pipx_temp_env, capsys):
