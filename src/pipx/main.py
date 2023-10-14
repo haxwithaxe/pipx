@@ -6,6 +6,7 @@ import argparse
 import logging
 import logging.config
 import os
+import platform
 import re
 import shlex
 import sys
@@ -721,12 +722,13 @@ def get_command_parser() -> argparse.ArgumentParser:
     _add_ensurepath(subparsers)
     _add_environment(subparsers)
 
-    parser.add_argument(
-        "--global",
-        action="store_true",
-        dest="is_global",
-        help="Preform action globally for all users.",
-    )
+    if platform.system() != "Windows":
+        parser.add_argument(
+            "--global",
+            action="store_true",
+            dest="is_global",
+            help="Preform action globally for all users.",
+        )
     parser.add_argument("--version", action="store_true", help="Print version and exit")
     subparsers.add_parser(
         "completions",
