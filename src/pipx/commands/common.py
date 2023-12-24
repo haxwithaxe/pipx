@@ -13,7 +13,7 @@ from typing import Dict, List, Optional, Set, Tuple
 import userpath  # type: ignore
 from packaging.utils import canonicalize_name
 
-from pipx import constants
+from pipx import paths
 from pipx.colors import bold, red
 from pipx.constants import MAN_SECTIONS, WINDOWS
 from pipx.emojis import hazard, stars
@@ -231,7 +231,7 @@ def get_venv_summary(
 
     exposed_app_paths = get_exposed_paths_for_package(
         venv.bin_path,
-        constants.LOCAL_BIN_DIR,
+        paths.ctx.bin_dir,
         [add_suffix(app, package_metadata.suffix) for app in apps],
     )
     exposed_binary_names = sorted(p.name for p in exposed_app_paths)
@@ -242,7 +242,7 @@ def get_venv_summary(
     for man_section in MAN_SECTIONS:
         exposed_man_paths |= get_exposed_man_paths_for_package(
             venv.man_path / man_section,
-            constants.LOCAL_MAN_DIR / man_section,
+            paths.ctx.man_dir / man_section,
             man_pages,
         )
     exposed_man_pages = sorted(str(Path(p.parent.name) / p.name) for p in exposed_man_paths)

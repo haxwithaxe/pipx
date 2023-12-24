@@ -1,5 +1,6 @@
 import json
 import re
+import sys
 
 import pytest  # type: ignore
 
@@ -12,12 +13,20 @@ from helpers import (
     run_pipx_cli,
 )
 from package_info import PKG
-from pipx import constants
+from pipx import constants, paths
 from pipx.pipx_metadata_file import PackageInfo, _json_decoder_object_hook
 
 
 def test_cli(pipx_temp_env, monkeypatch, capsys):
     assert not run_pipx_cli(["list"])
+    captured = capsys.readouterr()
+    assert "nothing has been installed with pipx" in captured.err
+
+
+def test_cli_global(pipx_temp_env, monkeypatch, capsys):
+    if sys.platform.startswith("win"):
+        pytest.skip("This behavior is undefined on Windows")
+    assert not run_pipx_cli(["--global", "list"])
     captured = capsys.readouterr()
     assert "nothing has been installed with pipx" in captured.err
 
@@ -72,7 +81,7 @@ def test_list_suffix_legacy_venv(pipx_temp_env, monkeypatch, capsys, metadata_ve
 
 
 def test_list_json(pipx_temp_env, capsys):
-    pipx_venvs_dir = constants.PIPX_HOME / "venvs"
+    pipx_venvs_dir = paths.ctx.home / "venvs"
     venv_bin_dir = "Scripts" if constants.WINDOWS else "bin"
 
     assert not run_pipx_cli(["install", PKG["pycowsay"]["spec"]])

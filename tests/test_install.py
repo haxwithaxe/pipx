@@ -9,7 +9,7 @@ import pytest  # type: ignore
 
 from helpers import app_name, run_pipx_cli, unwrap_log_text
 from package_info import PKG
-from pipx import constants
+from pipx import paths
 
 TEST_DATA_PATH = "./testdata/test_package_specifier"
 
@@ -56,6 +56,16 @@ def test_install_easy_multiple_packages(capsys, pipx_temp_env, caplog):
         ["pycowsay", PKG["black"]["spec"]],
         ["pycowsay", "black"],
     )
+
+
+@pytest.mark.parametrize(
+    "package_name, package_spec",
+    [("pycowsay", "pycowsay"), ("black", PKG["black"]["spec"])],
+)
+def test_install_easy_packages_globally(capsys, pipx_temp_env, caplog, package_name, package_spec):
+    if sys.platform.startswith("win"):
+        pytest.skip("This behavior is undefined on Windows")
+    install_packages(capsys, pipx_temp_env, caplog, package_spec, package_name)
 
 
 @pytest.mark.parametrize(
@@ -169,8 +179,8 @@ def test_existing_symlink_points_to_existing_wrong_location_warning(pipx_temp_en
     if sys.platform.startswith("win"):
         pytest.skip("pipx does not use symlinks on Windows")
 
-    constants.LOCAL_BIN_DIR.mkdir(exist_ok=True, parents=True)
-    (constants.LOCAL_BIN_DIR / "pycowsay").symlink_to(os.devnull)
+    paths.ctx.bin_dir.mkdir(exist_ok=True, parents=True)
+    (paths.ctx.bin_dir / "pycowsay").symlink_to(os.devnull)
     assert not run_pipx_cli(["install", "pycowsay"])
     captured = capsys.readouterr()
     assert "File exists at" in unwrap_log_text(caplog.text)
@@ -184,8 +194,8 @@ def test_existing_man_page_symlink_points_to_existing_wrong_location_warning(pip
     if sys.platform.startswith("win"):
         pytest.skip("pipx does not use symlinks on Windows")
 
-    (constants.LOCAL_MAN_DIR / "man6").mkdir(exist_ok=True, parents=True)
-    (constants.LOCAL_MAN_DIR / "man6" / "pycowsay.6").symlink_to(os.devnull)
+    (paths.ctx.man_dir / "man6").mkdir(exist_ok=True, parents=True)
+    (paths.ctx.man_dir / "man6" / "pycowsay.6").symlink_to(os.devnull)
     assert not run_pipx_cli(["install", "pycowsay"])
     captured = capsys.readouterr()
     assert "File exists at" in unwrap_log_text(caplog.text)
@@ -196,8 +206,8 @@ def test_existing_symlink_points_to_nothing(pipx_temp_env, capsys):
     if sys.platform.startswith("win"):
         pytest.skip("pipx does not use symlinks on Windows")
 
-    constants.LOCAL_BIN_DIR.mkdir(exist_ok=True, parents=True)
-    (constants.LOCAL_BIN_DIR / "pycowsay").symlink_to("/asdf/jkl")
+    paths.ctx.bin_dir.mkdir(exist_ok=True, parents=True)
+    (paths.ctx.bin_dir / "pycowsay").symlink_to("/asdf/jkl")
     assert not run_pipx_cli(["install", "pycowsay"])
     captured = capsys.readouterr()
     # pipx should realize the symlink points to nothing and replace it,
@@ -209,8 +219,8 @@ def test_existing_man_page_symlink_points_to_nothing(pipx_temp_env, capsys):
     if sys.platform.startswith("win"):
         pytest.skip("pipx does not use symlinks on Windows")
 
-    (constants.LOCAL_MAN_DIR / "man6").mkdir(exist_ok=True, parents=True)
-    (constants.LOCAL_MAN_DIR / "man6" / "pycowsay.6").symlink_to("/asdf/jkl")
+    (paths.ctx.man_dir / "man6").mkdir(exist_ok=True, parents=True)
+    (paths.ctx.man_dir / "man6" / "pycowsay.6").symlink_to("/asdf/jkl")
     assert not run_pipx_cli(["install", "pycowsay"])
     captured = capsys.readouterr()
     # pipx should realize the symlink points to nothing and replace it,
@@ -263,15 +273,15 @@ def test_install_suffix(pipx_temp_env, capsys):
     name_b = app_name(f"{name}{suffix}")
     assert f"- {name_b}" in captured.out
 
-    assert (constants.LOCAL_BIN_DIR / name_a).exists()
-    assert (constants.LOCAL_BIN_DIR / name_b).exists()
+    assert (paths.ctx.bin_dir / name_a).exists()
+    assert (paths.ctx.bin_dir / name_b).exists()
 
 
 def test_man_page_install(pipx_temp_env, capsys):
     assert not run_pipx_cli(["install", "pycowsay"])
     captured = capsys.readouterr()
     assert f"- {Path('man6/pycowsay.6')}" in captured.out
-    assert (constants.LOCAL_MAN_DIR / "man6" / "pycowsay.6").exists()
+    assert (paths.ctx.man_dir / "man6" / "pycowsay.6").exists()
 
 
 def test_install_pip_failure(pipx_temp_env, capsys):

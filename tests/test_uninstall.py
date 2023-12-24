@@ -4,7 +4,7 @@ import pytest  # type: ignore
 
 from helpers import app_name, mock_legacy_venv, remove_venv_interpreter, run_pipx_cli
 from package_info import PKG
-from pipx import constants
+from pipx import paths
 
 
 def file_or_symlink(filepath):
@@ -22,6 +22,13 @@ def test_uninstall(pipx_temp_env):
     assert not run_pipx_cli(["uninstall", "pycowsay"])
 
 
+def test_uninstall_global(pipx_temp_env):
+    if sys.platform.startswith("win"):
+        pytest.skip("This behavior is undefined on Windows")
+    assert not run_pipx_cli(["--global", "install", "pycowsay"])
+    assert not run_pipx_cli(["--global", "uninstall", "pycowsay"])
+
+
 def test_uninstall_circular_deps(pipx_temp_env):
     assert not run_pipx_cli(["install", PKG["cloudtoken"]["spec"]])
     assert not run_pipx_cli(["uninstall", "cloudtoken"])
@@ -29,7 +36,7 @@ def test_uninstall_circular_deps(pipx_temp_env):
 
 @pytest.mark.parametrize("metadata_version", [None, "0.1", "0.2"])
 def test_uninstall_legacy_venv(pipx_temp_env, metadata_version):
-    executable_path = constants.LOCAL_BIN_DIR / app_name("pycowsay")
+    executable_path = paths.ctx.bin_dir / app_name("pycowsay")
 
     assert not run_pipx_cli(["install", "pycowsay"])
     assert executable_path.exists()
@@ -42,7 +49,7 @@ def test_uninstall_legacy_venv(pipx_temp_env, metadata_version):
 def test_uninstall_suffix(pipx_temp_env):
     name = "pbr"
     suffix = "_a"
-    executable_path = constants.LOCAL_BIN_DIR / app_name(f"{name}{suffix}")
+    executable_path = paths.ctx.bin_dir / app_name(f"{name}{suffix}")
 
     assert not run_pipx_cli(["install", PKG[name]["spec"], f"--suffix={suffix}"])
     assert executable_path.exists()
@@ -52,7 +59,7 @@ def test_uninstall_suffix(pipx_temp_env):
 
 
 def test_uninstall_man_page(pipx_temp_env):
-    man_page_path = constants.LOCAL_MAN_DIR / "man6" / "pycowsay.6"
+    man_page_path = paths.ctx.man_dir / "man6" / "pycowsay.6"
     assert not run_pipx_cli(["install", "pycowsay"])
     assert man_page_path.exists()
     assert not run_pipx_cli(["uninstall", "pycowsay"])
@@ -60,9 +67,9 @@ def test_uninstall_man_page(pipx_temp_env):
 
 
 def test_uninstall_injected(pipx_temp_env):
-    pycowsay_app_paths = [constants.LOCAL_BIN_DIR / app for app in PKG["pycowsay"]["apps"]]
-    pycowsay_man_page_paths = [constants.LOCAL_MAN_DIR / man_page for man_page in PKG["pycowsay"]["man_pages"]]
-    pylint_app_paths = [constants.LOCAL_BIN_DIR / app for app in PKG["pylint"]["apps"]]
+    pycowsay_app_paths = [paths.ctx.bin_dir / app for app in PKG["pycowsay"]["apps"]]
+    pycowsay_man_page_paths = [paths.ctx.man_dir / man_page for man_page in PKG["pycowsay"]["man_pages"]]
+    pylint_app_paths = [paths.ctx.bin_dir / app for app in PKG["pylint"]["apps"]]
     app_paths = pycowsay_app_paths + pylint_app_paths
     man_page_paths = pycowsay_man_page_paths
 
@@ -90,7 +97,7 @@ def test_uninstall_suffix_legacy_venv(pipx_temp_env, metadata_version):
     # legacy uninstall on Windows only works with "canonical name characters"
     #   in suffix
     suffix = "-a"
-    executable_path = constants.LOCAL_BIN_DIR / app_name(f"{name}{suffix}")
+    executable_path = paths.ctx.bin_dir / app_name(f"{name}{suffix}")
 
     assert not run_pipx_cli(["install", PKG[name]["spec"], f"--suffix={suffix}"])
     mock_legacy_venv(f"{name}{suffix}", metadata_version=metadata_version)
@@ -102,7 +109,7 @@ def test_uninstall_suffix_legacy_venv(pipx_temp_env, metadata_version):
 
 @pytest.mark.parametrize("metadata_version", [None, "0.1", "0.2"])
 def test_uninstall_with_missing_interpreter(pipx_temp_env, metadata_version):
-    executable_path = constants.LOCAL_BIN_DIR / app_name("pycowsay")
+    executable_path = paths.ctx.bin_dir / app_name("pycowsay")
 
     assert not run_pipx_cli(["install", "pycowsay"])
     assert executable_path.exists()
@@ -120,8 +127,8 @@ def test_uninstall_with_missing_interpreter(pipx_temp_env, metadata_version):
 def test_uninstall_proper_dep_behavior(pipx_temp_env, metadata_version):
     # isort is a dependency of pylint.  Make sure that uninstalling pylint
     #   does not also uninstall isort app in LOCAL_BIN_DIR
-    isort_app_paths = [constants.LOCAL_BIN_DIR / app for app in PKG["isort"]["apps"]]
-    pylint_app_paths = [constants.LOCAL_BIN_DIR / app for app in PKG["pylint"]["apps"]]
+    isort_app_paths = [paths.ctx.bin_dir / app for app in PKG["isort"]["apps"]]
+    pylint_app_paths = [paths.ctx.bin_dir / app for app in PKG["pylint"]["apps"]]
 
     assert not run_pipx_cli(["install", PKG["pylint"]["spec"]])
     assert not run_pipx_cli(["install", PKG["isort"]["spec"]])
@@ -145,8 +152,8 @@ def test_uninstall_proper_dep_behavior(pipx_temp_env, metadata_version):
 def test_uninstall_proper_dep_behavior_missing_interpreter(pipx_temp_env, metadata_version):
     # isort is a dependency of pylint.  Make sure that uninstalling pylint
     #   does not also uninstall isort app in LOCAL_BIN_DIR
-    isort_app_paths = [constants.LOCAL_BIN_DIR / app for app in PKG["isort"]["apps"]]
-    pylint_app_paths = [constants.LOCAL_BIN_DIR / app for app in PKG["pylint"]["apps"]]
+    isort_app_paths = [paths.ctx.bin_dir / app for app in PKG["isort"]["apps"]]
+    pylint_app_paths = [paths.ctx.bin_dir / app for app in PKG["pylint"]["apps"]]
 
     assert not run_pipx_cli(["install", PKG["pylint"]["spec"]])
     assert not run_pipx_cli(["install", PKG["isort"]["spec"]])

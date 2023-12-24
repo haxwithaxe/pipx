@@ -1,3 +1,5 @@
+import sys
+
 import pytest  # type: ignore
 
 from helpers import mock_legacy_venv, run_pipx_cli
@@ -8,6 +10,14 @@ def test_upgrade(pipx_temp_env, capsys):
     assert run_pipx_cli(["upgrade", "pycowsay"])
     assert not run_pipx_cli(["install", "pycowsay"])
     assert not run_pipx_cli(["upgrade", "pycowsay"])
+
+
+def test_upgrade_global(pipx_temp_env, capsys):
+    if sys.platform.startswith("win"):
+        pytest.skip("This behavior is undefined on Windows")
+    assert run_pipx_cli(["--global", "upgrade", "pycowsay"])
+    assert not run_pipx_cli(["--global", "install", "pycowsay"])
+    assert not run_pipx_cli(["--global", "upgrade", "pycowsay"])
 
 
 @pytest.mark.parametrize("metadata_version", [None, "0.1"])
