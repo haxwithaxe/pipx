@@ -66,8 +66,8 @@ def pipx_temp_env_helper(pipx_shared_dir, tmp_path, monkeypatch, request, utils_
     monkeypatch.setattr(paths.ctx, "_base_bin", bin_dir)
     monkeypatch.setattr(paths.ctx, "_base_man", man_dir)
     # Patch the default global paths so developers don't contaminate their own systems
-    monkeypatch.setattr(paths, "DEFAULT_PIPX_GLOBAL_BIN_DIR", global_bin_dir)
-    monkeypatch.setattr(paths, "DEFAULT_PIPX_GLOBAL_MAN_DIR", global_man_dir)
+    monkeypatch.setattr(paths, "DEFAULT_PIPX_BIN_DIR", global_bin_dir)
+    monkeypatch.setattr(paths, "DEFAULT_PIPX_MAN_DIR", global_man_dir)
     monkeypatch.setattr(paths, "DEFAULT_PIPX_GLOBAL_HOME", global_home_dir)
     monkeypatch.setattr(shared_libs, "shared_libs", shared_libs._SharedLibs())
     monkeypatch.setattr(venv, "shared_libs", shared_libs.shared_libs)

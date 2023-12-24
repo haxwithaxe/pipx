@@ -9,6 +9,7 @@ FALLBACK_PIPX_HOME = Path.home() / ".local/pipx"
 DEFAULT_PIPX_BIN_DIR = Path.home() / ".local/bin"
 DEFAULT_PIPX_MAN_DIR = Path.home() / ".local/share/man"
 DEFAULT_PIPX_GLOBAL_BIN_DIR = "/usr/local/bin"
+DEFAULT_PIPX_GLOBAL_MAN_DIR = "/usr/local/share/man"
 DEFAULT_PIPX_GLOBAL_HOME = "/opt/pipx"
 
 
@@ -68,6 +69,7 @@ class _PathContext:
     def make_global(self) -> None:
         self._base_home = DEFAULT_PIPX_GLOBAL_HOME
         self._base_bin = DEFAULT_PIPX_GLOBAL_BIN_DIR
+        self._base_man = DEFAULT_PIPX_GLOBAL_MAN_DIR
 
 
 ctx = _PathContext()
